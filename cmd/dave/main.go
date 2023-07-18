@@ -9,7 +9,28 @@ import (
 	"golang.org/x/net/webdav"
 	syslog "log"
 	"net/http"
+	"time"
 )
+
+
+type FakeLockSystem struct {
+}
+
+func (ls FakeLockSystem) Confirm(now time.Time, name0, name1 string, conditions ...webdav.Condition) (release func(), err error) {
+	return nil, nil
+}
+
+func (ls FakeLockSystem) Create(now time.Time, details webdav.LockDetails) (token string, err error) {
+	return "fake", nil
+}
+
+func (ls FakeLockSystem) Refresh(now time.Time, token string, duration time.Duration) (webdav.LockDetails, error) {
+	return webdav.LockDetails{}, nil
+}
+
+func (ls FakeLockSystem) Unlock(now time.Time, token string) error {
+	return nil
+}
 
 func main() {
 	var configPath string
@@ -35,7 +56,7 @@ func main() {
 		FileSystem: &app.Dir{
 			Config: config,
 		},
-		LockSystem: webdav.NewMemLS(),
+		LockSystem: FakeLockSystem{},
 		Logger: func(request *http.Request, err error) {
 			if config.Log.Error && err != nil {
 				log.Error(err)
